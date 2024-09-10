@@ -1,15 +1,13 @@
 "use client";
 
-import { useState, ChangeEvent, FormEvent } from "react";
+import { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-interface DoctorFormData {
+interface DoctorProfileData {
   name: string;
   username: string;
   email: string;
   specialty: string;
-  password: string;
-  confirmPassword: string;
   licenseNumber: string;
   yearsOfExperience: number;
   phone: string;
@@ -19,14 +17,12 @@ interface DoctorFormData {
   zipCode: string;
 }
 
-export default function DoctorRegister() {
-  const [formData, setFormData] = useState<DoctorFormData>({
+export default function DoctorEditProfile() {
+  const [formData, setFormData] = useState<DoctorProfileData>({
     name: "",
     username: "",
     email: "",
     specialty: "",
-    password: "",
-    confirmPassword: "",
     licenseNumber: "",
     yearsOfExperience: 0,
     phone: "",
@@ -39,6 +35,16 @@ export default function DoctorRegister() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
+  useEffect(() => {
+    // Fetch current profile data from local storage (or API)
+    const data = localStorage.getItem("doctorProfile");
+    if (data) {
+      setFormData(JSON.parse(data));
+    } else {
+      router.push("/doctor/login"); // Redirect if no profile data is found
+    }
+  }, [router]);
+
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -47,29 +53,25 @@ export default function DoctorRegister() {
     }));
   };
 
-  const handleRegister = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
 
-    // Simulate registration process (you can connect this to an API later)
-    localStorage.setItem("isDoctorRegistered", "true");
-    router.push("/doctor/login"); // Redirect to login page after registration
+    // Validate data here if needed
+
+    // Simulate saving data (replace with API call)
+    localStorage.setItem("doctorProfile", JSON.stringify(formData));
+    router.push("/doctor/profile"); // Redirect to profile page after saving
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-500 to-indigo-500 p-5">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
         <h2 className="text-3xl font-bold text-center mb-6 text-blue-700">
-          Doctor Registration
+          Edit Doctor Profile
         </h2>
-        <form onSubmit={handleRegister} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Full Name
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Full Name</label>
             <input
               type="text"
               name="name"
@@ -82,9 +84,7 @@ export default function DoctorRegister() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Username
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Username</label>
             <input
               type="text"
               name="username"
@@ -97,9 +97,7 @@ export default function DoctorRegister() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Email
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Email</label>
             <input
               type="email"
               name="email"
@@ -112,9 +110,7 @@ export default function DoctorRegister() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Specialty
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Specialty</label>
             <input
               type="text"
               name="specialty"
@@ -127,39 +123,7 @@ export default function DoctorRegister() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Password
-            </label>
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-              value={formData.password}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Confirm Password
-            </label>
-            <input
-              type="password"
-              name="confirmPassword"
-              placeholder="Confirm Password"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-              value={formData.confirmPassword}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              License Number
-            </label>
+            <label className="block text-sm font-medium text-gray-700">License Number</label>
             <input
               type="text"
               name="licenseNumber"
@@ -172,9 +136,7 @@ export default function DoctorRegister() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Years of Experience
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Years of Experience</label>
             <input
               type="number"
               name="yearsOfExperience"
@@ -187,37 +149,33 @@ export default function DoctorRegister() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Phone
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Phone</label>
             <input
-              type="tel"
+              type="text"
               name="phone"
-              placeholder="(123) 456-7890"
+              placeholder="Phone Number"
               className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
               value={formData.phone}
               onChange={handleInputChange}
+              required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Address
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Address</label>
             <input
               type="text"
               name="address"
-              placeholder="123 Main St"
+              placeholder="Address"
               className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
               value={formData.address}
               onChange={handleInputChange}
+              required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              City
-            </label>
+            <label className="block text-sm font-medium text-gray-700">City</label>
             <input
               type="text"
               name="city"
@@ -225,13 +183,12 @@ export default function DoctorRegister() {
               className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
               value={formData.city}
               onChange={handleInputChange}
+              required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              State
-            </label>
+            <label className="block text-sm font-medium text-gray-700">State</label>
             <input
               type="text"
               name="state"
@@ -239,20 +196,20 @@ export default function DoctorRegister() {
               className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
               value={formData.state}
               onChange={handleInputChange}
+              required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Zip Code
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Zip Code</label>
             <input
               type="text"
               name="zipCode"
-              placeholder="12345"
+              placeholder="Zip Code"
               className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
               value={formData.zipCode}
               onChange={handleInputChange}
+              required
             />
           </div>
 
@@ -262,7 +219,7 @@ export default function DoctorRegister() {
             type="submit"
             className="w-full bg-blue-600 text-white font-bold p-3 rounded-md hover:bg-blue-700 transition-colors"
           >
-            Register
+            Save Changes
           </button>
         </form>
       </div>
