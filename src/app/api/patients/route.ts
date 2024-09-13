@@ -9,19 +9,18 @@ export async function GET(req: NextRequest) {
     const id = searchParams.get("id");
 
     try {
-
         if(id){
             const patient = await prisma.patient.findUnique({
                 where: {
                     id: id as string
                 }
             })
-            console.table(patient)
+            console.log(patient)
             return NextResponse.json(patient)
         }
 
         const patients = await prisma.patient.findMany()
-        console.table(patients)
+        console.log(patients)
         return NextResponse.json(patients)
     } catch (e) {
         console.error(e)
@@ -31,7 +30,7 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: "Unknown error" }, { status: 500 })
         }
     } finally {
-        console.table("Disconnecting")
+        console.log("Disconnecting")
         await prisma.$disconnect()
     }
 }
@@ -49,7 +48,7 @@ export async function POST(req: NextRequest) {
                 phone: phone,
             }
         })
-        console.table(patient)
+        console.log(patient)
         return NextResponse.json(patient, { status: 201 })
     } catch (e) {
         console.error(e)
@@ -59,7 +58,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Unknown error" }, { status: 500 })
         }
     } finally {
-        console.table("Disconnecting")
+        console.log("Disconnecting")
         await prisma.$disconnect()
     }
 }
@@ -85,7 +84,7 @@ export async function PUT(req: NextRequest) {
                 phone: phone,
             }
         })
-        console.table(patient)
+        console.log(patient)
         return NextResponse.json(patient, { status: 200 })
     } catch (e) {
         console.error(e)
@@ -95,7 +94,7 @@ export async function PUT(req: NextRequest) {
             return NextResponse.json({ error: "Unknown error" }, { status: 500 })
         }
     } finally {
-        console.table("Disconnecting")
+        console.log("Disconnecting")
         await prisma.$disconnect()
     }
 }
@@ -115,7 +114,7 @@ export async function DELETE(req: NextRequest) {
                 id: id as string
             }
         })
-        console.table(patient)
+        console.log(patient)
         return NextResponse.json(patient, { status: 200 })
     } catch (e) {
         console.error(e)
@@ -125,7 +124,7 @@ export async function DELETE(req: NextRequest) {
             return NextResponse.json({ error: "Unknown error" }, { status: 500 })
         }
     } finally {
-        console.table("Disconnecting")
+        console.log("Disconnecting")
         await prisma.$disconnect()
     }
 }
