@@ -15,12 +15,12 @@ export async function GET(req: NextRequest) {
                     id: id as string
                 }
             })
-            console.table(doctor)
+            console.log(doctor)
             return NextResponse.json(doctor)
         }
 
         const doctors = await prisma.doctor.findMany()
-        console.table(doctors)
+        console.log(doctors)
         return NextResponse.json(doctors)
     } catch (e) {
         console.error(e)
@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: "Unknown error" }, { status: 500 })
         }
     } finally {
-        console.table("Disconnecting")
+        console.log("Disconnecting")
         await prisma.$disconnect()
     }
 }
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
                 queueLimit: queueLimit,
             }
         })
-        console.table(doctor)
+        console.log(doctor)
         return NextResponse.json(doctor, { status: 201 })
     } catch (e) {
         console.error(e)
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Unknown error" }, { status: 500 })
         }
     } finally {
-        console.table("Disconnecting")
+        console.log("Disconnecting")
         await prisma.$disconnect()
     }
 }
@@ -89,7 +89,7 @@ export async function PUT(req: NextRequest) {
                 queueLimit: queueLimit
             }
         })
-        console.table(doctor)
+        console.log(doctor)
         return NextResponse.json(doctor, { status: 201 })
     } catch (e) {
         console.error(e)
@@ -99,7 +99,7 @@ export async function PUT(req: NextRequest) {
             return NextResponse.json({ error: "Unknown error" }, { status: 500 })
         }
     } finally {
-        console.table("Disconnecting")
+        console.log("Disconnecting")
         await prisma.$disconnect()
     }
 }
@@ -117,7 +117,7 @@ export async function DELETE(req: NextRequest) {
                 id: id as string
             }
         })
-        console.table(doctor)
+        console.log(doctor)
         return NextResponse.json(doctor, { status: 201 })
     } catch (e) {
         console.error(e)
@@ -127,7 +127,7 @@ export async function DELETE(req: NextRequest) {
             return NextResponse.json({ error: "Unknown error" }, { status: 500 })
         }
     } finally {
-        console.table("Disconnecting")
+        console.log("Disconnecting")
         await prisma.$disconnect()
     }
 }
