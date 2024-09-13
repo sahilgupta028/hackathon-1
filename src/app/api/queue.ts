@@ -5,10 +5,10 @@ import { PrismaClient } from "@prisma/client";
 import axios from "axios";
 
 export type Data = {
-    name: string;
+    name?: string;
     email?: string;
     phone?: string;
-    patientId: string;
+    patientId?: string;
     dob?: string;
     gender?: string;
 }
@@ -42,11 +42,16 @@ client.on("error", console.error)
 })
 .on("warning", () => {
     console.table("Redis warning");
+})
+.on("error", (err) => {
+    if(err.code === "ECONNREFUSED"){
+        console.error("Redis connection refused");
+    }
+    console.error(err);
 });
 
 // create a new queue with the name "queue"
 export const queue = new Queue("queue");
-
 
 // add a job to the queue and return the job id to the caller
 export async function addJob(data: Data): Promise<string> {
@@ -66,7 +71,10 @@ export const worker = new Worker(
 
     await job.updateProgress({ state: 'completed' });
 
-    await processQueue(job);
+    // add a time delay of 3 seconds
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
+    //await processQueue(job);
 
   },
   {
@@ -75,11 +83,18 @@ export const worker = new Worker(
 );
 
 worker.on('completed', job => {
-    console.table(`${job.id} has completed!`);
+    console.table(`From Worker -->  ${job.id} has completed!`);
+  });
+  worker.on('progress', (job: Job, progress: number | object) => {
+    // Do something with the return value.
+    console.table(`From Worker -->  ${job.id} has progressed to ${progress}`);
   });
   
   worker.on('failed', (job, err) => {
-    console.table(`${job?.id} has failed with ${err.message}`);
+    console.table(`From Worker -->  ${job?.id} has failed with ${err.message}`);
+});
+worker.on('error', (err) => {
+    console.error("From Worker -->  ",err);
 });
 
 
@@ -87,23 +102,23 @@ worker.on('completed', job => {
 export const queueEvents = new  QueueEvents("queue");
 
 queueEvents.on('waiting', ({ jobId }) => {
-    console.table(`A job with ID ${jobId} is waiting`);
+    console.table(`From QueueEvents -->  A job with ID ${jobId} is waiting`);
   });
   
   queueEvents.on('active', ({ jobId, prev }) => {
-    console.table(`Job ${jobId} is now active; previous status was ${prev}`);
+    console.table(`From QueueEvents -->  Job ${jobId} is now active; previous status was ${prev}`);
   });
   
   queueEvents.on('completed', ({ jobId, returnvalue }) => {
-    console.table(`${jobId} has completed and returned ${returnvalue}`);
+    console.table(`From QueueEvents -->  ${jobId} has completed and returned ${returnvalue}`);
   });
   
   queueEvents.on('failed', ({ jobId, failedReason }) => {
-    console.table(`${jobId} has failed with reason ${failedReason}`);
+    console.table(`From QueueEvents -->  ${jobId} has failed with reason ${failedReason}`);
   });
 
   queueEvents.on('progress', ({ jobId, data }, timestamp) => {
-    console.table(`${jobId} reported progress ${data} at ${timestamp}`);
+    console.table(`From QueueEvents -->  ${jobId} reported progress ${data} at ${timestamp}`);
   });
 
   async function processQueue(job: Job){
@@ -113,7 +128,7 @@ queueEvents.on('waiting', ({ jobId }) => {
 
     const data = await job.data 
 
-    console.table(data);
+    console.table("From Process -->  ",data);
 
     const prisma = new PrismaClient();
     try {
@@ -123,10 +138,9 @@ queueEvents.on('waiting', ({ jobId }) => {
         if(patient.status !== 200){
             // create new patient
             const newPatient = await axios.post(`http://localhost:3000/api/patients`, data);
-            if(newPatient.status === 201){
-                console.table("New patient created");
+            if(newPatient.status !== 201 && newPatient.status !== 200){
+                throw new Error("Failed to create patient");
             }
-            throw new Error("Failed to create patient");
         }
 
         // create appointment
