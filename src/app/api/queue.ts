@@ -1,7 +1,7 @@
 import { createClient } from "redis";
 import { Queue, Worker, QueueEvents, Job } from "bullmq";
 import IORedis from 'ioredis';
-import { PrismaClient } from "@prisma/client";
+import { Patient, PrismaClient } from "@prisma/client";
 import axios from "axios";
 import { promises } from "dns";
 
@@ -132,15 +132,16 @@ queueEvents.on('waiting', ({ jobId }) => {
     await job.updateProgress(42);
     await job.updateProgress({ state: 'completed' });
 
-    const data = await job.data 
+    const data = await job.data.data
 
     console.log("From Process -->  ",data);
 
     const prisma = new PrismaClient();
     try {
 
+        let patient: Patient
       // if patientId is not provided, create a new patient
-        if(!data.patientId){
+        if(!data.patientId || data.patientId === ""){
             console.log("Patient not found, creating new patient");
             // convert data to JSON object
             const json = {
@@ -148,32 +149,44 @@ queueEvents.on('waiting', ({ jobId }) => {
                 email: data.email,
                 phone: data.phone,
             }
+            console.log("json: ", json);
             // create new patient
             const newPatient = await axios.post(`http://localhost:3000/api/patients`, json);
             if(newPatient.status !== 201 && newPatient.status !== 200){
-                throw new Error("Failed to create patient");
+                // log the error, update status as failed and remove the job from the queue
+                console.error("Failed to create patient");
+                await job.updateProgress({ state: 'failed' });
+                return;
             }
+
+            patient = newPatient.data;
+        }else{
+          const newPatient = await axios.get(`http://localhost:3000/api/patients?${data.patientId}`);
+          if(newPatient.status !== 200){
+              console.error("Patient not found");
+              await job.updateProgress({ state: 'failed' });
+              return;
+          }
+          patient = newPatient.data;
         }
         
-        const patient = await axios.get(`http://localhost:3000/api/patients?${data.patientId}`);
-        if(patient.status !== 200){
-            throw new Error("Failed to get patient");
-        }
-
+        
         // create appointment
         const appointment = await prisma.appointment.create({
             data: {
-                patientId: data.id,
-                doctorId: "1",
-                date: new Date()
+                patientId: patient?.id,
+                doctorId: "cm0zjfugz0006imgatmtjcveg",
+                date: new Date(),
             }
         })
 
-        console.log(appointment);
-
-        await job.updateProgress({ state: 'completed' });
-
-        return 'completed';
+        if(appointment){
+            console.log("Appointment created: ", appointment);
+            await job.updateProgress({ state: 'completed' });
+            return "completed";
+        }
+        console.error("Failed to create appointment");
+        await job.updateProgress({ state: 'failed' });
 
     } catch (error) {
         console.error(error);
