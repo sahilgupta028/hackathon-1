@@ -1,0 +1,66 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model Patient {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  appointments Appointment[]
+}
+
+model Doctor {
+  id          String   @id @default(cuid())
+  name        String
+  email       String
+  phone       String
+  available   Boolean  @default(true)
+  queueLimit  Int      @default(10)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  appointments Appointment[]
+}
+
+model Appointment {
+  id        String   @id @default(cuid())
+  patientId String
+  doctorId  String
+  date      DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  patient Patient @relation(fields: [patientId], references: [id])
+  doctor  Doctor  @relation(fields: [doctorId], references: [id])
+}
+
+enum Status {
+  SCHEDULED
+  IN_QUEUE
+  COMPLETED
+  CANCELLED
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  email     String
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
