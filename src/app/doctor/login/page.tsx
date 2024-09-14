@@ -1,60 +1,71 @@
 "use client";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
-import React, { useState, ChangeEvent, FormEvent } from "react";
-
-const DoctorLoginPage: React.FC = () => {
-  const [username, setUsername] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
+export default function Login() {
+  const router = useRouter();
+  const [form, setForm] = useState({ email: '', phone: '' });
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError(null);
+    setLoading(true);
 
-    // Dummy login check
-    if (username && password) {
-      localStorage.setItem("isDoctorLoggedIn", "true");
-      window.location.href = "/"; // Redirect to home page or doctor profile
-    } else {
-      setError("Invalid credentials");
+    try {
+      const res = await fetch(`/api/patient?email=${form.email}`, {
+        method: 'GET',
+      });
+
+      if (res.ok) {
+        const patient = await res.json();
+        if (patient && patient.phone === form.phone) {
+          router.push('/dashboard');
+        } else {
+          setError('Invalid email or phone number');
+        }
+      } else {
+        setError('Patient not found');
+      }
+    } catch (error: any) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-5">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center text-blue-600 mb-6">
-          Welcome back !!!
-        </h2>
-        <form onSubmit={handleLogin} className="space-y-6">
+        <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-             Email-Id
-            </label>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
             <input
+              id="email"
+              name="email"
               type="email"
-              placeholder="Enter your Email-Id"
-              className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-              value={username}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setUsername(e.target.value)
-              }
               required
+              value={form.email}
+              onChange={handleChange}
+              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
-
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
+            <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label>
             <input
-              type="password"
-              placeholder="Enter your password"
-              className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-              value={password}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setPassword(e.target.value)
-              }
+              id="phone"
+              name="phone"
+              type="text"
               required
+              value={form.phone}
+              onChange={handleChange}
+              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
@@ -62,20 +73,13 @@ const DoctorLoginPage: React.FC = () => {
 
           <button
             type="submit"
-            className="w-full bg-blue-500 text-white font-bold p-2 rounded-md hover:bg-blue-600 transition-colors"
+            className={`w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-500 transition duration-300 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={loading}
           >
-            Login
+            {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
-        <p className="text-sm text-gray-500 text-center mt-4">
-          Forgot your password?{" "}
-          <a href="#" className="text-blue-500 hover:underline">
-            Reset here
-          </a>
-        </p>
       </div>
     </div>
   );
-};
-
-export default DoctorLoginPage;
+}
