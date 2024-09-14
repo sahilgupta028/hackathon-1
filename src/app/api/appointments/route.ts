@@ -31,14 +31,14 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
     const prisma = new PrismaClient();
 
-    const { patientId, email, phone, name, gender, dob } = await req.json();
+    const { doctorId, patientId, date, gender, name, age , email, phone} = await req.json();
 
     try {
         // const appointment = await prisma.appointment.create({
         //     data: {
         //         patientId: patientId,
         //         doctorId: doctorId,
-        //         date: new Date(time)
+        //         date: new Date(date)
         //     }
         // })
         // console.log(appointment)
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
         const data: Data = {
             patientId: patientId,
             gender: gender,
-            dob: dob,
+            age: age,
             name: name,
             email: email,
             phone: phone

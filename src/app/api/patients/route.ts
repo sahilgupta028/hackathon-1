@@ -38,8 +38,8 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
     const prisma = new PrismaClient();
 
-    const { name, email, phone } = await req.json();
-    console.log("From Patient POST: ", name, email, phone)
+    const { name, email, phone , gender, age} = await req.json();
+    console.log("From Patient POST: ", name, email, phone, gender, age);
     try {
         const patient = await prisma.patient.create({
             data: {

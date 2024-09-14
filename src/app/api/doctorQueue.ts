@@ -13,7 +13,7 @@ export const connection = new IORedis({
 export const doctorQueues: Map<string, Queue> = new Map();
 const prisma = new PrismaClient();
 
-function createDoctorQueue(doctorId: string): Queue {
+async function createDoctorQueue(doctorId: string): Promise<Queue> {
     // Check if the queue already exists, if so, return it
     if (doctorQueues.has(doctorId)) {
       return doctorQueues.get(doctorId)!; // Non-null assertion as we know it exists
@@ -37,7 +37,7 @@ function createDoctorQueue(doctorId: string): Queue {
     return doctorQueue;
 }
   
-function scheduleQueueDeletion(doctorId: string, queue: Queue) {
+async function scheduleQueueDeletion(doctorId: string, queue: Queue) {
     const now = new Date();
     const deletionTime = new Date();
     deletionTime.setHours(18, 0, 0, 0); // Set the deletion time to 6:00 PM
@@ -70,7 +70,7 @@ function scheduleQueueDeletion(doctorId: string, queue: Queue) {
 
 
   // Function to create queues for all doctors at 08:00 AM on working days
-function scheduleQueueCreationForAllDoctors(doctorIds: string[]) {
+export async function scheduleQueueCreationForAllDoctors(doctorIds: string[]) {
     const now = new Date();
     const creationTime = new Date();
     creationTime.setHours(8, 0, 0, 0); // 08:00 AM
@@ -93,7 +93,7 @@ function scheduleQueueCreationForAllDoctors(doctorIds: string[]) {
   
   // Function to start the process for creating queues every day at 08:00 AM
   // return a value if all queue
-  function startDailyQueueCreation(doctorIds: string[]) {
+  async function startDailyQueueCreation(doctorIds: string[]) {
     scheduleQueueCreationForAllDoctors(doctorIds);
   
     // Set up the next day's queue creation at 08:00 AM
@@ -104,12 +104,22 @@ function scheduleQueueCreationForAllDoctors(doctorIds: string[]) {
         doctorIds.forEach(createDoctorQueue);
       }
     }, 24 * 60 * 60 * 1000); // Check once every 24 hours
+
+    // Check if queues exist for all doctors
+    const queuesExist = doctorIds.every((doctorId) => doctorQueues.has(doctorId));
+    if (!queuesExist) {
+      console.log('Queues not created for all doctors yet...');
+      doctorIds.forEach(createDoctorQueue);
+    }
+
+    console.log('All queues created successfully.');
+
   }
 
 
   // Helper to get the end time of the last job (appointment) in the queue
 async function getLastJobEndTime(queue: Queue): Promise<Date | null> {
-    const jobs: Job[] = await queue.getJobs(['completed', 'waiting', 'active'], 0, 1, false);
+    const jobs: Job[] = await queue.getJobs(['completed', 'waiting', 'active', 'failed'], 0, 1, false);
   
     if (jobs.length === 0) {
       // No jobs exist, so the doctor is available at 10:00 AM
@@ -123,18 +133,21 @@ async function getLastJobEndTime(queue: Queue): Promise<Date | null> {
     const appointmentTime = new Date(lastJob.data.appointmentTime); // Assuming appointmentTime is stored in the job data
     const endTime = new Date(appointmentTime);
     endTime.setMinutes(endTime.getMinutes() + 12); // Default duration of 12 minutes per appointment
-  
+    console.log("End Time: for queue", endTime, queue.name);
     return endTime;
 }
 // Main logic to find the nearest available doctor queue based on the end time of the last job
 export async function getNearestAvailableDoctorQueue(): Promise<{ doctorId: string | null, lastBookingTime: Date | null }> {
+    console.log("Doctor Queues: ", doctorQueues);
     let nearestQueue: Queue | null = null;
     let earliestEndTime: Date | null = null;
   
     // Start the daily queue creation process
     const doctorData = await prisma.doctor.findMany();
+    console.log("Doctor Data: ", doctorData);
     const doctorIds = doctorData.map((doctor) => doctor.id);
-    startDailyQueueCreation(doctorIds);
+    console.log("Doctor Ids: ", doctorIds);
+    await startDailyQueueCreation(doctorIds);
 
     const now = new Date();
     const endOfDay = new Date();
@@ -156,6 +169,8 @@ export async function getNearestAvailableDoctorQueue(): Promise<{ doctorId: stri
       }
     }
   
+    console.log('Nearest queue:', nearestQueue);
+
     return {
         doctorId: nearestQueue ? nearestQueue.name : null,
         lastBookingTime: nearestQueue ? await getLastJobEndTime(nearestQueue) : null

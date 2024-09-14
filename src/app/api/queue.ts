@@ -12,7 +12,7 @@ export type Data = {
     email?: string;
     phone?: string;
     patientId?: string;
-    dob?: string;
+    age?: number;
     gender?: string;
 }
 
@@ -152,6 +152,8 @@ queueEvents.on('waiting', ({ jobId }) => {
                 name: data.name,
                 email: data.email,
                 phone: data.phone,
+                gender: data.gender,
+                age: data.age
             }
             console.log("json: ", json);
             // create new patient
@@ -165,7 +167,7 @@ queueEvents.on('waiting', ({ jobId }) => {
 
             patient = newPatient.data;
         }else{
-          const newPatient = await axios.get(`http://localhost:3000/api/patients?${data.patientId}`);
+          const newPatient = await axios.get(`http://localhost:3000/api/patients?id=${data.patientId}`);
           if(newPatient.status !== 200){
               console.error("Patient not found");
               await job.updateProgress({ state: 'failed' });
@@ -174,13 +176,18 @@ queueEvents.on('waiting', ({ jobId }) => {
           patient = newPatient.data;
         }
         
-       const { doctorId, lastBookingTime } = await getNearestAvailableDoctorQueue();
-        if(!doctorId){
-            console.error("Doctor not found");
-            await job.updateProgress({ state: 'failed' });
-            return;
-        }
-        
+      //  const { doctorId, lastBookingTime } = await getNearestAvailableDoctorQueue();
+      //   if(!doctorId){
+      //       console.error("Doctor not found");
+      //       await job.updateProgress({ state: 'failed' });
+      //       return;
+      //   }
+
+      const doctorId = "cm11mzj20000d4nipgua3or0k";
+      // 11:00 AM of today
+      const lastBookingTime = new Date();
+      lastBookingTime.setHours(11, 0, 0, 0);
+      console.log("Doctor Id: ", doctorId, "Last Booking Time: ", lastBookingTime, "Patient: ", patient);
         // create appointment
         const appointment = await prisma.appointment.create({
             data: {
