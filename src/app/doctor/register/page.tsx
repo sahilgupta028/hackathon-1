@@ -1,271 +1,132 @@
 "use client";
 
-import { useState, ChangeEvent, FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState } from "react";
+import axios from "axios";
 
-interface DoctorFormData {
-  name: string;
-  username: string;
-  email: string;
-  specialty: string;
-  password: string;
-  confirmPassword: string;
-  licenseNumber: string;
-  yearsOfExperience: number;
-  phone: string;
-  address: string;
-  city: string;
-  state: string;
-  zipCode: string;
-}
-
-export default function DoctorRegister() {
-  const [formData, setFormData] = useState<DoctorFormData>({
+const RegisterDoctor: React.FC = () => {
+  const [formData, setFormData] = useState({
     name: "",
-    username: "",
     email: "",
-    specialty: "",
-    password: "",
-    confirmPassword: "",
-    licenseNumber: "",
-    yearsOfExperience: 0,
     phone: "",
-    address: "",
-    city: "",
-    state: "",
-    zipCode: "",
+    available: true,
+    queueLimit: 10,
   });
-
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
+  const [success, setSuccess] = useState<string | null>(null);
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+  // Handle input change
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
-  const handleRegister = (e: FormEvent<HTMLFormElement>) => {
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
 
-    // Simulate registration process (you can connect this to an API later)
-    localStorage.setItem("isDoctorRegistered", "true");
-    router.push("/doctor/login"); // Redirect to login page after registration
+    try {
+      // Make a POST request to register a doctor
+      const res = await axios.post("/api/doctors", formData);
+      setSuccess("Doctor registered successfully!");
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        available: true,
+        queueLimit: 10,
+      });
+    } catch (err) {
+      console.error(err);
+      setError("An error occurred. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-500 to-indigo-500 p-5">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
-        <h2 className="text-3xl font-bold text-center mb-6 text-blue-700">
-          Doctor Registration
-        </h2>
-        <form onSubmit={handleRegister} className="space-y-4">
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-6 text-center">Welcome to our team !!!</h2>
+        
+        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+        {success && <p className="text-green-500 text-center mb-4">{success}</p>}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Full Name
-            </label>
+            <label className="block text-gray-700">Name</label>
             <input
               type="text"
               name="name"
-              placeholder="Dr. John Doe"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
               value={formData.name}
               onChange={handleInputChange}
+              className="w-full p-3 border border-gray-300 rounded-md"
               required
             />
           </div>
-
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Username
-            </label>
-            <input
-              type="text"
-              name="username"
-              placeholder="Username"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-              value={formData.username}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Email
-            </label>
+            <label className="block text-gray-700">Email</label>
             <input
               type="email"
               name="email"
-              placeholder="doctor@example.com"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
               value={formData.email}
               onChange={handleInputChange}
+              className="w-full p-3 border border-gray-300 rounded-md"
               required
             />
           </div>
-
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Specialty
-            </label>
+            <label className="block text-gray-700">Phone</label>
             <input
               type="text"
-              name="specialty"
-              placeholder="Cardiology, Neurology, etc."
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-              value={formData.specialty}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Password
-            </label>
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-              value={formData.password}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Confirm Password
-            </label>
-            <input
-              type="password"
-              name="confirmPassword"
-              placeholder="Confirm Password"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-              value={formData.confirmPassword}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              License Number
-            </label>
-            <input
-              type="text"
-              name="licenseNumber"
-              placeholder="License Number"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-              value={formData.licenseNumber}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Years of Experience
-            </label>
-            <input
-              type="number"
-              name="yearsOfExperience"
-              placeholder="Years of Experience"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-              value={formData.yearsOfExperience}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Phone
-            </label>
-            <input
-              type="tel"
               name="phone"
-              placeholder="(123) 456-7890"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
               value={formData.phone}
               onChange={handleInputChange}
+              className="w-full p-3 border border-gray-300 rounded-md"
+              required
             />
           </div>
-
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Address
-            </label>
-            <input
-              type="text"
-              name="address"
-              placeholder="123 Main St"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-              value={formData.address}
+            <label className="block text-gray-700">Available</label>
+            <select
+              name="available"
+              value={formData.available ? "true" : "false"}
               onChange={handleInputChange}
-            />
+              className="w-full p-3 border border-gray-300 rounded-md"
+            >
+              <option value="true">Yes</option>
+              <option value="false">No</option>
+            </select>
           </div>
-
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              City
-            </label>
+            <label className="block text-gray-700">Queue Limit</label>
             <input
-              type="text"
-              name="city"
-              placeholder="City"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-              value={formData.city}
+              type="number"
+              name="queueLimit"
+              value={formData.queueLimit}
               onChange={handleInputChange}
+              className="w-full p-3 border border-gray-300 rounded-md"
+              required
             />
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              State
-            </label>
-            <input
-              type="text"
-              name="state"
-              placeholder="State"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-              value={formData.state}
-              onChange={handleInputChange}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Zip Code
-            </label>
-            <input
-              type="text"
-              name="zipCode"
-              placeholder="12345"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-              value={formData.zipCode}
-              onChange={handleInputChange}
-            />
-          </div>
-
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white font-bold p-3 rounded-md hover:bg-blue-700 transition-colors"
+            className={`w-full bg-blue-500 text-white font-bold p-3 rounded-md hover:bg-blue-600 transition-colors ${
+              loading && "cursor-not-allowed"
+            }`}
+            disabled={loading}
           >
-            Register
+            {loading ? "Registering..." : "Register Doctor"}
           </button>
         </form>
       </div>
     </div>
   );
-}
+};
+
+export default RegisterDoctor;

@@ -23,16 +23,16 @@ const DoctorLoginPage: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-5">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
         <h2 className="text-2xl font-bold text-center text-blue-600 mb-6">
-          Doctor Login
+          Welcome back !!!
         </h2>
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Username
+             Email-Id
             </label>
             <input
-              type="text"
-              placeholder="Enter your username"
+              type="email"
+              placeholder="Enter your Email-Id"
               className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
               value={username}
               onChange={(e: ChangeEvent<HTMLInputElement>) =>
