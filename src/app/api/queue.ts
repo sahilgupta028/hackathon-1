@@ -4,7 +4,7 @@ import IORedis from 'ioredis';
 import { Patient, PrismaClient } from "@prisma/client";
 import axios from "axios";
 import { promises } from "dns";
-import { sendSMS } from "./sms";
+import { sendSMS, sendWhatsApp } from "./sms";
 import { getNearestAvailableDoctorQueue } from "./doctorQueue";
 
 export type Data = {
@@ -91,9 +91,23 @@ export const worker = new Worker(
 // };
 
 worker.on('completed', job => {
-    console.log(`From Worker -->  ${job.id} has completed!`);
+    console.log(job);
       // send SMS to patient with number +91-8130635690
-    //sendSMS("+918130635690", "Your appointment has been scheduled successfully");
+    // sendSMS("+918130635690", 
+    //   `Your appointment has been scheduled successfully. Details:
+    //   ID: ${job.returnvalue.id}
+    //   Date: ${job.returnvalue.date}
+    //   Doctor: ${job.returnvalue.doctorName}
+    //   Duration: ${job.returnvalue.durationMins}
+    //   `
+    // );
+    sendWhatsApp("+918130635690", `Your appointment has been scheduled successfully. Details:
+      ID: ${job.returnvalue.id}
+      Date: ${job.returnvalue.date}
+      Doctor: ${job.returnvalue.doctorName}
+      Duration: ${job.returnvalue.durationMins}
+      `);
+
   });
   worker.on('progress', (job: Job, progress: number | object) => {
     // Do something with the return value.
@@ -200,8 +214,16 @@ queueEvents.on('waiting', ({ jobId }) => {
         if(appointment){
             console.log("Appointment created: ", appointment);
             await job.updateProgress({ state: 'completed' });
-            return "completed";
-        }
+            // Create a new object like appoitment having docotr name too
+
+            const appointmentWithDoctor = {
+                ...appointment,
+                doctorName: "Dr. Abhinandan Verma",
+                patientName: patient.name
+            }
+
+            return appointmentWithDoctor;
+        } 
         console.error("Failed to create appointment");
         await job.updateProgress({ state: 'failed' });
 

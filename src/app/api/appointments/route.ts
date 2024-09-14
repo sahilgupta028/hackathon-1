@@ -33,6 +33,8 @@ export async function POST(req: NextRequest) {
 
     const { doctorId, patientId, date, gender, name, age , email, phone} = await req.json();
 
+    console.log("From Appointment POST: ", doctorId, patientId, date, gender, name, age, email, phone);
+
     try {
         // const appointment = await prisma.appointment.create({
         //     data: {

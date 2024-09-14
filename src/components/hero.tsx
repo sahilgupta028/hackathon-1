@@ -13,6 +13,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { SparkleIcon } from "lucide-react";
+import { Button } from "./ui/button";
 
 export default function Home() {
 
@@ -63,9 +64,14 @@ export default function Home() {
             <div className="flex flex-col lg:flex-row justify-center lg:justify-start gap-4 lg:mt-10">
 
               <Link href='/services'>
-                <button className='rounded-3xl bg-primary/5 md:min-w-44'>
+                <Button className='rounded-3xl bg-primary/30 md:min-w-44'>
                   All Services
-                </button>
+                </Button>
+              </Link>
+              <Link href='/appointment'>
+                <Button className='rounded-3xl bg-primary md:min-w-44 text-white'>
+                  Book OPD
+                </Button>
               </Link>
             </div>
           </div>
