@@ -31,7 +31,7 @@ model Doctor {
   email       String
   phone       String
   available   Boolean  @default(true)
-  queueLimit  Int      @default(10)
+  workingHours Json   @default("{\"start\": \"0800\", \"end\": \"1700\", \"breakStart\": \"1300\", \"breakEnd\": \"1400\"}")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -43,6 +43,7 @@ model Appointment {
   patientId String
   doctorId  String
   date      DateTime
+  durationMins Int   @default(12)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

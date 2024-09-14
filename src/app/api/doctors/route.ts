@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
     const prisma = new PrismaClient();
 
-    const { name, email, phone, available, queueLimit } = await req.json();
+    const { name, email, phone, available,} = await req.json();
 
     try {
         const doctor = await prisma.doctor.create({
@@ -48,7 +48,6 @@ export async function POST(req: NextRequest) {
                 email: email,
                 phone: phone,
                 available: available,
-                queueLimit: queueLimit,
             }
         })
         console.log(doctor)
@@ -74,7 +73,7 @@ export async function PUT(req: NextRequest) {
 
     const {searchParams} = new URL(req.url);    
     const id = searchParams.get("id");
-    const { name, email, phone, available, queueLimit } = await req.json();
+    const { name, email, phone, available,} = await req.json();
 
     try {
         const doctor = await prisma.doctor.update({
@@ -86,7 +85,6 @@ export async function PUT(req: NextRequest) {
                 email: email,
                 phone: phone,
                 available: available,
-                queueLimit: queueLimit
             }
         })
         console.log(doctor)

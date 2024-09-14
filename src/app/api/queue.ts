@@ -4,6 +4,8 @@ import IORedis from 'ioredis';
 import { Patient, PrismaClient } from "@prisma/client";
 import axios from "axios";
 import { promises } from "dns";
+import { sendSMS } from "./sms";
+import { getNearestAvailableDoctorQueue } from "./doctorQueue";
 
 export type Data = {
     name?: string;
@@ -55,7 +57,7 @@ export const queue = new Queue("queue");
 
 // add a job to the queue and return the job id to the caller
 export async function addJob(data: Data): Promise<string> {
-    const job = await queue.add("queue", { data: data }, { removeOnComplete: true, removeOnFail: true, removeDependencyOnFailure: true });
+    const job = await queue.add("queue", { data: data }, { removeOnComplete: 10000, removeOnFail: true, removeDependencyOnFailure: true });
     console.log("From Queue --> Job added to queue: ", job.id);
     return job.id as string;
 }
@@ -90,6 +92,8 @@ export const worker = new Worker(
 
 worker.on('completed', job => {
     console.log(`From Worker -->  ${job.id} has completed!`);
+      // send SMS to patient with number +91-8130635690
+    //sendSMS("+918130635690", "Your appointment has been scheduled successfully");
   });
   worker.on('progress', (job: Job, progress: number | object) => {
     // Do something with the return value.
@@ -140,7 +144,7 @@ queueEvents.on('waiting', ({ jobId }) => {
     try {
 
         let patient: Patient
-      // if patientId is not provided, create a new patient
+        // if patientId is not provided, create a new patient
         if(!data.patientId || data.patientId === ""){
             console.log("Patient not found, creating new patient");
             // convert data to JSON object
@@ -170,13 +174,19 @@ queueEvents.on('waiting', ({ jobId }) => {
           patient = newPatient.data;
         }
         
+       const { doctorId, lastBookingTime } = await getNearestAvailableDoctorQueue();
+        if(!doctorId){
+            console.error("Doctor not found");
+            await job.updateProgress({ state: 'failed' });
+            return;
+        }
         
         // create appointment
         const appointment = await prisma.appointment.create({
             data: {
                 patientId: patient?.id,
-                doctorId: "cm0zjfugz0006imgatmtjcveg",
-                date: new Date(),
+                doctorId: doctorId,
+                date: new Date(lastBookingTime as Date),
             }
         })
 
@@ -192,4 +202,13 @@ queueEvents.on('waiting', ({ jobId }) => {
         console.error(error);
         await job.updateProgress({ state: 'failed' });
     }
+}
+
+export async function getJob(jobID: string): Promise<Job | null> {
+    const job = await queue.getJob(jobID);
+    if(job){
+        console.log("From Queue --> Job found in queue: ", job.id);
+        return job;
+    }
+    return null;
 }
