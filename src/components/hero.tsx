@@ -84,14 +84,10 @@ export default function Home() {
 
       {/* Specialization Section */}
       <div className="specialization-box py-10 bg-blue-50 text-center">
-        <span className="flex items-center justify-between p-4 bg-primary/20">
-            <span></span>
+        <span className="flex items-center justify-center p-4 bg-primary/20">
            <h2 className="text-4xl font-bold text-blue-900">Manage Departments</h2>
-           <button className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 md:w-44">
-            View All
-          </button>
         </span>
-        <div className="flex flex-wrap gap-8 justify-center items-center max-w-screen-xl mx-auto">
+        <div className="flex flex-wrap gap-8 justify-center items-center max-w-screen-lg mx-auto">
           {specialization.slice(0, index).map((specialization, index) => (
             <div key={index} className="flex flex-col items-center">
               <Image
@@ -115,14 +111,10 @@ export default function Home() {
 
       {/* Medical Specialist Section */}
       <div className="py-10 bg-white text-center">
-        <span className="flex flex-row items-center justify-between p-5 bg-primary/20">
-          <span></span>
+        <span className="flex flex-row items-center justify-center p-5 bg-primary/20">
           <h2 className="text-3xl font-bold text-blue-900">Our Medical Specialist</h2>
-          <button className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 md:w-44">
-            View All
-          </button>
         </span>
-        <div className="max-w-screen-xl mx-auto">
+        <div className="max-w-screen-lg mx-auto">
           <Slider {...settings}>
             {dummyDoctors.map((doctor) => (
               <div key={doctor.id} className="p-4">
@@ -140,7 +132,7 @@ export default function Home() {
       {/* Latest News Section */}
       <div className="py-10 bg-blue-50 text-center">
         <h2 className="text-3xl font-bold mb-10 text-blue-900">Read Our Latest News</h2>
-        <div className="max-w-screen-xl mx-auto">
+        <div className="max-w-screen-lg mx-auto">
           <Slider {...settings}>
             {latestNews.map((news) => (
               <div key={news.id} className="p-4">
